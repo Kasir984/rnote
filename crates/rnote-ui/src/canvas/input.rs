@@ -68,6 +68,8 @@ pub(crate) fn handle_pointer_controller_event(
                 {
                     handle_pen_event = true;
                     handle_shortcut_key = true;
+                    // Give ButtonPress priority over ProximityIn state
+                    pen_state = PenState::Down;
                 }
             } else {
                 #[allow(clippy::collapsible_else_if)]
@@ -174,6 +176,15 @@ pub(crate) fn handle_pointer_controller_event(
             #[cfg(target_os = "windows")]
             {
                 if element.pressure > 0.0 && is_stylus {
+                    pen_state = PenState::Down;
+                }
+            }
+
+            // Ensure button press always triggers Down state on Windows
+            // even if the workaround above didn't catch it
+            #[cfg(target_os = "windows")]
+            {
+                if is_stylus && pen_state != PenState::Down {
                     pen_state = PenState::Down;
                 }
             }
